@@ -3,13 +3,16 @@ package com.example.enterprise.auth;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import org.mybatis.spring.annotation.MapperScan;
+
 /**
- * auth service entry point.
- *
- * Phase 1 only provides the runnable application skeleton.
- * Infrastructure integrations are introduced in later phases.
+ * Auth service entry.
+ * <p>
+ * Phase 5: local MySQL for credential check.
+ * Phase 10+: prefer Feign to enterprise-user for user profile.
  */
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.example.enterprise.auth", "com.example.enterprise.common"})
+@MapperScan("com.example.enterprise.auth.mapper")
 public class EnterpriseAuthApplication {
 
     public static void main(String[] args) {
