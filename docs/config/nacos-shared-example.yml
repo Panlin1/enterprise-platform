@@ -1,0 +1,32 @@
+# =============================================================================
+# Nacos 共享配置示例
+# 在 Nacos 控制台创建 Data ID，例如：
+#   Data ID: common-redis.yml   Group: DEFAULT_GROUP
+#   Data ID: common-mysql.yml  Group: DEFAULT_GROUP
+#   Data ID: enterprise-auth.yml  Group: DEFAULT_GROUP
+# 敏感项使用占位符，由环境变量或 Nacos 加密配置注入
+# =============================================================================
+
+# ----- common-mysql.yml 示例 -----
+# spring:
+#   datasource:
+#     url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/enterprise_platform?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+#     username: ${MYSQL_USERNAME:root}
+#     password: ${MYSQL_PASSWORD}
+#     driver-class-name: com.mysql.cj.jdbc.Driver
+
+# ----- common-redis.yml 示例 -----
+# spring:
+#   data:
+#     redis:
+#       host: ${REDIS_HOST:localhost}
+#       port: ${REDIS_PORT:6379}
+#       password: ${REDIS_PASSWORD:}
+#       database: 0
+
+# ----- enterprise-auth.yml 示例（服务专属） -----
+# auth:
+#   login:
+#     fail-max: 5
+#   captcha:
+#     dev-expose-code: false
