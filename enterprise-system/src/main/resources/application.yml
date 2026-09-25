@@ -4,12 +4,53 @@ server:
 spring:
   application:
     name: enterprise-system
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
+        group: DEFAULT_GROUP
+        # 本地无 Nacos 时可设 false，避免启动失败；接入后请改为 true
+        enabled: ${NACOS_DISCOVERY_ENABLED:true}
+        fail-fast: false
+      config:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
+        group: DEFAULT_GROUP
+        file-extension: yml
+        refresh-enabled: true
+        enabled: ${NACOS_CONFIG_ENABLED:false}
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      id-type: auto
+
+sa-token:
+  token-name: Authorization
+  timeout: 7200
+  is-read-header: true
+  is-read-cookie: false
+  token-prefix: Bearer
+  is-print: false
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info
-  endpoint:
-    health:
-      show-details: never
+
+logging:
+  level:
+    com.example.system: INFO

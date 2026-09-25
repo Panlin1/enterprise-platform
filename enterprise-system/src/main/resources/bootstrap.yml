@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: enterprise-system
+  cloud:
+    nacos:
+      config:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        file-extension: yml
+        group: DEFAULT_GROUP
+        # 默认关闭远程配置，避免本地无 Nacos 配置时启动异常；需要时设 NACOS_CONFIG_ENABLED=true
+        enabled: ${NACOS_CONFIG_ENABLED:false}
+      discovery:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        enabled: ${NACOS_DISCOVERY_ENABLED:true}
