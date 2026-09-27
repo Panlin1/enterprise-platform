@@ -2,10 +2,10 @@
 
 ## 1. 职责
 
-| 能力 | 用途 |
-|------|------|
-| 服务注册发现 | auth / user / system（后续 gateway）互相发现 |
-| 配置中心 | 共享 MySQL/Redis、各服务专属配置；敏感项不进 Git |
+| 能力         | 用途                                             |
+|--------------|--------------------------------------------------|
+| 服务注册发现 | auth / user / system（后续 gateway）互相发现     |
+| 配置中心     | 共享 MySQL/Redis、各服务专属配置；敏感项不进 Git |
 
 ## 2. 版本
 
@@ -37,12 +37,12 @@ docker run -d --name nacos -p 8848:8848 -p 9848:9848 \
 
 环境变量：
 
-| 变量 | 默认 | 说明 |
-|------|------|------|
-| `NACOS_ADDR` | localhost:8848 | 地址 |
-| `NACOS_NAMESPACE` | 空 | 命名空间 ID |
-| `NACOS_DISCOVERY_ENABLED` | true | 是否注册 |
-| `NACOS_CONFIG_ENABLED` | false | 是否拉远程配置（本地默认可关） |
+| 变量                      | 默认           | 说明                           |
+|---------------------------|----------------|--------------------------------|
+| `NACOS_ADDR`              | localhost:8848 | 地址                           |
+| `NACOS_NAMESPACE`         | 空             | 命名空间 ID                    |
+| `NACOS_DISCOVERY_ENABLED` | true           | 是否注册                       |
+| `NACOS_CONFIG_ENABLED`    | false          | 是否拉远程配置（本地默认可关） |
 
 服务名：
 

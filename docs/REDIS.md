@@ -4,17 +4,17 @@
 
 Redis 在本项目中不仅做缓存，还承担：
 
-| 场景 | 说明 | 典型 Key |
-|------|------|----------|
+| 场景                 | 说明                          | 典型 Key                                                           |
+|----------------------|-------------------------------|--------------------------------------------------------------------|
 | 登录 Token / Session | Sa-Token + Redis（Auth 阶段） | 由 Sa-Token 管理；业务侧可用 `enterprise:auth:token:{userId}` 辅助 |
-| 验证码 | 短 TTL | `enterprise:auth:captcha:{uuid}` |
-| 登录失败计数 | 限流 / 锁定 | `enterprise:auth:login_fail:{username}` |
-| 用户详情缓存 | Cache-Aside | `enterprise:user:detail:{userId}` |
-| 用户权限缓存 | 登录后加载 | `enterprise:user:permissions:{userId}` |
-| 字典缓存 | 只读热点 | `enterprise:system:dict:{dictType}` |
-| 接口限流计数 | 网关 / Sentinel 前 | `enterprise:rate_limit:login:{username}` |
-| 分布式锁 | 定时任务、防重 | 业务自定义，必须设 TTL |
-| 防重复提交 | 短 TTL 锁 | 业务自定义 |
+| 验证码               | 短 TTL                        | `enterprise:auth:captcha:{uuid}`                                   |
+| 登录失败计数         | 限流 / 锁定                   | `enterprise:auth:login_fail:{username}`                            |
+| 用户详情缓存         | Cache-Aside                   | `enterprise:user:detail:{userId}`                                  |
+| 用户权限缓存         | 登录后加载                    | `enterprise:user:permissions:{userId}`                             |
+| 字典缓存             | 只读热点                      | `enterprise:system:dict:{dictType}`                                |
+| 接口限流计数         | 网关 / Sentinel 前            | `enterprise:rate_limit:login:{username}`                           |
+| 分布式锁             | 定时任务、防重                | 业务自定义，必须设 TTL                                             |
+| 防重复提交           | 短 TTL 锁                     | 业务自定义                                                         |
 
 ## 2. Key 规范
 
@@ -28,28 +28,28 @@ Redis 在本项目中不仅做缓存，还承担：
 
 使用 `RedisKeyBuilder` 生成，禁止手写拼接散落在业务代码中。
 
-| 方法 | 生成 Key |
-|------|----------|
-| `authToken(userId)` | `enterprise:auth:token:{userId}` |
-| `authCaptcha(uuid)` | `enterprise:auth:captcha:{uuid}` |
-| `authLoginFail(username)` | `enterprise:auth:login_fail:{username}` |
+| 方法                       | 生成 Key                                 |
+|----------------------------|------------------------------------------|
+| `authToken(userId)`        | `enterprise:auth:token:{userId}`         |
+| `authCaptcha(uuid)`        | `enterprise:auth:captcha:{uuid}`         |
+| `authLoginFail(username)`  | `enterprise:auth:login_fail:{username}`  |
 | `rateLimitLogin(username)` | `enterprise:rate_limit:login:{username}` |
-| `userDetail(userId)` | `enterprise:user:detail:{userId}` |
-| `userPermissions(userId)` | `enterprise:user:permissions:{userId}` |
-| `systemDict(dictType)` | `enterprise:system:dict:{dictType}` |
+| `userDetail(userId)`       | `enterprise:user:detail:{userId}`        |
+| `userPermissions(userId)`  | `enterprise:user:permissions:{userId}`   |
+| `systemDict(dictType)`     | `enterprise:system:dict:{dictType}`      |
 
 ## 3. TTL 约定（`RedisConstants`）
 
-| 常量 | 默认 | 用途 |
-|------|------|------|
-| `CAPTCHA_TTL` | 5 分钟 | 验证码 |
-| `LOGIN_FAIL_TTL` | 15 分钟 | 登录失败窗口 |
-| `TOKEN_TTL` | 2 小时 | 业务侧 token 辅助缓存 |
-| `USER_DETAIL_TTL` | 30 分钟 | 用户详情 |
-| `USER_PERMISSIONS_TTL` | 30 分钟 | 权限集合 |
-| `DICT_TTL` | 1 小时 | 字典 |
-| `NULL_VALUE_TTL` | 2 分钟 | 空值占位（防穿透） |
-| `TTL_JITTER_SECONDS` | 0–60 秒随机 | 防雪崩 |
+| 常量                   | 默认        | 用途                  |
+|------------------------|-------------|-----------------------|
+| `CAPTCHA_TTL`          | 5 分钟      | 验证码                |
+| `LOGIN_FAIL_TTL`       | 15 分钟     | 登录失败窗口          |
+| `TOKEN_TTL`            | 2 小时      | 业务侧 token 辅助缓存 |
+| `USER_DETAIL_TTL`      | 30 分钟     | 用户详情              |
+| `USER_PERMISSIONS_TTL` | 30 分钟     | 权限集合              |
+| `DICT_TTL`             | 1 小时      | 字典                  |
+| `NULL_VALUE_TTL`       | 2 分钟      | 空值占位（防穿透）    |
+| `TTL_JITTER_SECONDS`   | 0–60 秒随机 | 防雪崩                |
 
 ## 4. 缓存读写模式
 
@@ -68,15 +68,19 @@ Redis 在本项目中不仅做缓存，还承担：
 
 ```java
 User user = redisUtils.getOrLoad(
-    RedisKeyBuilder.userDetail(id),
-    RedisConstants.USER_DETAIL_TTL,
-    () -> userMapper.selectById(id),
-    User.class
+        RedisKeyBuilder.userDetail(id),
+        RedisConstants.USER_DETAIL_TTL,
+        () -> userMapper.selectById(id),
+        User.class
 );
 
 // 更新后
-userMapper.updateById(user);
-redisUtils.evict(RedisKeyBuilder.userDetail(user.getId()));
+userMapper.
+
+updateById(user);
+redisUtils.
+
+evict(RedisKeyBuilder.userDetail(user.getId()));
 ```
 
 ### 4.2 登录失败计数
@@ -95,17 +99,19 @@ redisUtils.delete(key);
 
 ```java
 String key = RedisKeyBuilder.authCaptcha(uuid);
-redisUtils.setString(key, code, RedisConstants.CAPTCHA_TTL);
+redisUtils.
+
+setString(key, code, RedisConstants.CAPTCHA_TTL);
 // 校验后立即 delete，防止重放
 ```
 
 ## 5. 三大问题与对策
 
-| 问题 | 现象 | 本项目对策 |
-|------|------|------------|
-| **穿透** | 查不存在的数据打穿到 DB | `getOrLoad` 缓存 `__NULL__` 占位，短 TTL |
-| **击穿** | 热点 Key 过期瞬间大量打 DB | 互斥锁（`setIfAbsent`）或逻辑过期；热点权限/字典尽量预热 |
-| **雪崩** | 大量 Key 同时过期 | `setWithJitter` / `ttlWithJitter` 打散过期时间；核心数据多级缓存；限流 |
+| 问题     | 现象                       | 本项目对策                                                             |
+|----------|----------------------------|------------------------------------------------------------------------|
+| **穿透** | 查不存在的数据打穿到 DB    | `getOrLoad` 缓存 `__NULL__` 占位，短 TTL                               |
+| **击穿** | 热点 Key 过期瞬间大量打 DB | 互斥锁（`setIfAbsent`）或逻辑过期；热点权限/字典尽量预热               |
+| **雪崩** | 大量 Key 同时过期          | `setWithJitter` / `ttlWithJitter` 打散过期时间；核心数据多级缓存；限流 |
 
 ## 6. 一致性
 
@@ -147,16 +153,16 @@ REDIS_PASSWORD
 REDIS_DATABASE
 ```
 
-生产密码通过环境变量或 Nacos 配置中心注入，**禁止提交到 Git**。
+生产密码通过环境变量或 Nacos 配置中心注入， **禁止提交到 Git**。
 
 ## 9. 公共代码位置
 
-| 类 | 职责 |
-|----|------|
-| `RedisConfig` | RedisTemplate JSON 序列化（有 Redis 连接才生效） |
-| `RedisUtils` | get/set/delete、getOrLoad、jitter、计数 |
-| `RedisKeyBuilder` | 统一 Key |
-| `RedisConstants` | TTL 与空值占位符 |
+| 类                | 职责                                             |
+|-------------------|--------------------------------------------------|
+| `RedisConfig`     | RedisTemplate JSON 序列化（有 Redis 连接才生效） |
+| `RedisUtils`      | get/set/delete、getOrLoad、jitter、计数          |
+| `RedisKeyBuilder` | 统一 Key                                         |
+| `RedisConstants`  | TTL 与空值占位符                                 |
 
 业务服务依赖 `enterprise-common` 且配置了 `spring.data.redis` 后自动可用。
 
