@@ -1,15 +1,88 @@
 server:
-  port: 8080
+  # 8090：避开 Nacos 3.2.4 占用的 8080（控制台端口）
+  port: 8084
 
 spring:
   application:
     name: enterprise-gateway
+  profiles:
+    active: dev
+  main:
+    web-application-type: reactive
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
+        group: DEFAULT_GROUP
+        enabled: ${NACOS_DISCOVERY_ENABLED:true}
+        fail-fast: false
+      config:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        enabled: ${NACOS_CONFIG_ENABLED:false}
+        file-extension: yml
+    gateway:
+      discovery:
+        locator:
+          # 关闭自动路由，使用下方显式 routes，路径更可控
+          enabled: false
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+      routes:
+        # Auth
+        - id: enterprise-auth
+          uri: lb://enterprise-auth
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=0
+
+        # User
+        - id: enterprise-user
+          uri: lb://enterprise-user
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=0
+
+        # System: menus / dicts / configs / permissions
+        - id: enterprise-system-menus
+          uri: lb://enterprise-system
+          predicates:
+            - Path=/api/system/**
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: 3s
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 2
+
+sa-token:
+  token-name: Authorization
+  timeout: 7200
+  is-concurrent: true
+  is-share: false
+  token-style: uuid
+  is-log: false
+  is-read-header: true
+  is-read-cookie: false
+  token-prefix: Bearer
+  is-print: false
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
-  endpoint:
-    health:
-      show-details: never
+        include: health,info,gateway
+
+logging:
+  level:
+    com.example.gateway: INFO
+    org.springframework.cloud.gateway: INFO
