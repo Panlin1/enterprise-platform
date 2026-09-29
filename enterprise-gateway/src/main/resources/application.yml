@@ -9,6 +9,8 @@ spring:
     active: dev
   main:
     web-application-type: reactive
+  cache:
+    type: caffeine
   cloud:
     nacos:
       discovery:
@@ -22,34 +24,36 @@ spring:
         enabled: ${NACOS_CONFIG_ENABLED:false}
         file-extension: yml
     gateway:
-      discovery:
-        locator:
-          # 关闭自动路由，使用下方显式 routes，路径更可控
-          enabled: false
-      default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
-      routes:
-        # Auth
-        - id: enterprise-auth
-          uri: lb://enterprise-auth
-          predicates:
-            - Path=/api/auth/**
-          filters:
-            - StripPrefix=0
+      server:
+        webflux:
+          discovery:
+            locator:
+              # 关闭自动路由，使用下方显式 routes，路径更可控
+              enabled: false
+          default-filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+          routes:
+            # Auth
+            - id: enterprise-auth
+              uri: lb://enterprise-auth
+              predicates:
+                - Path=/api/auth/**
+              filters:
+                - StripPrefix=0
 
-        # User
-        - id: enterprise-user
-          uri: lb://enterprise-user
-          predicates:
-            - Path=/api/users/**
-          filters:
-            - StripPrefix=0
+            # User
+            - id: enterprise-user
+              uri: lb://enterprise-user
+              predicates:
+                - Path=/api/users/**
+              filters:
+                - StripPrefix=0
 
-        # System: menus / dicts / configs / permissions
-        - id: enterprise-system-menus
-          uri: lb://enterprise-system
-          predicates:
-            - Path=/api/system/**
+            # System: menus / dicts / configs / permissions
+            - id: enterprise-system-menus
+              uri: lb://enterprise-system
+              predicates:
+                - Path=/api/system/**
 
   data:
     redis:
@@ -77,6 +81,9 @@ sa-token:
   is-print: false
 
 management:
+  endpoint:
+    gateway:
+      access: read-only
   endpoints:
     web:
       exposure:
