@@ -46,14 +46,14 @@ mvn spring-boot:run
 
 Ports:
 
-| Module | Port |
-|---|---:|
-| gateway | 8080 |
-| auth | 8081 |
-| user | 8082 |
-| system | 8083 |
-| file | 8084 |
-| business | 8085 |
-| job | 8086 |
+| Module   | Port |
+|----------|-----:|
+| auth     | 8081 |
+| user     | 8082 |
+| system   | 8083 |
+| gateway  | 8084 |
+| file     | 8085 |
+| business | 8086 |
+| job      | 8087 |
 
 Phase 1 deliberately does not connect to external middleware. Nacos, MySQL, Redis, Sentinel, RocketMQ and other infrastructure are introduced in their dedicated phases.
