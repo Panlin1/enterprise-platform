@@ -9,6 +9,7 @@
         <groupId>com.example.enterprise</groupId>
         <artifactId>enterprise-platform</artifactId>
         <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>enterprise-job</artifactId>

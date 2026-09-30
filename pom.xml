@@ -38,10 +38,36 @@
 
         <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
         <spring-boot-maven-plugin.version>${spring-boot.version}</spring-boot-maven-plugin.version>
+
+        <!-- 本地依赖版本管理 -->
+        <enterprise-common.version>1.0.0-SNAPSHOT</enterprise-common.version>
+
+        <!-- 第三方依赖版本管理-->
+        <!-- Hutool 工具库（enterprise-common 使用） -->
+        <hutool.version>5.8.40</hutool.version>
+        <!-- springdoc: Swagger/OpenAPI 文档， 子模块去版本 -->
+        <springdoc.version>2.3.0</springdoc.version>
+        <!-- sa-Token: 认证/鉴权， auth/user 模块使用 -->
+        <sa-token.version>1.38.0</sa-token.version>
+        <!-- mybatis-plus: auth/user/system 数据层 -->
+        <mybatis-plus.version>3.5.5</mybatis-plus.version>
+        <!-- CVE-2025-48924: commons-lang3 < 3.18.0 存在不受控制递归漏洞（springdoc 传递引入）-->
+        <commons-lang3.version>3.18.0</commons-lang3.version>
+        <!-- CVE-2026-0636: bcprov-jdk18on 1.74~1.84 存在LDAP注入漏洞（spring-cloud-context 传递引入） -->
+        <bouncycastle.version>1.84</bouncycastle.version>
+
     </properties>
 
     <dependencyManagement>
         <dependencies>
+
+            <!-- ========= 本地依赖管理 ========= -->
+            <dependency>
+                <groupId>com.example.enterprise</groupId>
+                <artifactId>enterprise-common</artifactId>
+                <version>${enterprise-common.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -65,6 +91,60 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
+            <!-- =========== 业务第三方依赖版本管理 =========== -->
+            <!-- 修复 springdoc 版本缺失导致的模块解析失败（auth/user/system） -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+
+            <!-- Sa-Token 版本管理 (auth/user) -->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-spring-boot3-starter</artifactId>
+                <version>${sa-token.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-redis-jackson</artifactId>
+                <version>${sa-token.version}</version>
+            </dependency>
+
+            <!-- Sa-Token Reactor (gateway 使用, WebFlux 版) -->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-reactor-spring-boot3-starter</artifactId>
+                <version>${sa-token.version}</version>
+            </dependency>
+
+            <!-- Mybatis-Plus 版本管理 (auth/user/system) -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
+            <!-- CVE 修复: 锁定传递依赖版本 (dependencyManagement 优先级高于传递依赖) -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+
+
         </dependencies>
     </dependencyManagement>
 
