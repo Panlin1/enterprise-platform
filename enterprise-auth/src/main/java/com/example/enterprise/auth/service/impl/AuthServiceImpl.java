@@ -5,6 +5,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.enterprise.auth.dto.LoginRequest;
 import com.example.enterprise.auth.entity.AuthUser;
+import com.example.enterprise.auth.feign.UserFeignClient;
 import com.example.enterprise.auth.mapper.AuthUserMapper;
 import com.example.enterprise.auth.service.AuthService;
 import com.example.enterprise.auth.vo.CaptchaVO;
@@ -13,6 +14,8 @@ import com.example.enterprise.auth.vo.UserInfoVO;
 import com.example.enterprise.common.core.constant.CommonConstants;
 import com.example.enterprise.common.core.constant.ErrorCode;
 import com.example.enterprise.common.core.exception.BusinessException;
+import com.example.enterprise.common.core.result.Result;
+import com.example.enterprise.common.feign.FeignUserDTO;
 import com.example.enterprise.common.redis.RedisConstants;
 import com.example.enterprise.common.redis.RedisKeyBuilder;
 import com.example.enterprise.common.redis.RedisUtils;
@@ -32,6 +35,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+
+
 @Service
 public class AuthServiceImpl implements AuthService {
 
@@ -41,6 +46,7 @@ public class AuthServiceImpl implements AuthService {
     private static final int CAPTCHA_LENGTH = 4;
 
     private final AuthUserMapper authUserMapper;
+    private final UserFeignClient userFeignClient;
     private final PasswordEncoder passwordEncoder;
     private final RedisUtils redisUtils;
 
@@ -51,9 +57,11 @@ public class AuthServiceImpl implements AuthService {
     private boolean captchaDevExposeCode;
 
     public AuthServiceImpl(AuthUserMapper authUserMapper,
+                           UserFeignClient userFeignClient,
                            PasswordEncoder passwordEncoder,
                            RedisUtils redisUtils) {
         this.authUserMapper = authUserMapper;
+        this.userFeignClient = userFeignClient;
         this.passwordEncoder = passwordEncoder;
         this.redisUtils = redisUtils;
     }
@@ -77,10 +85,8 @@ public class AuthServiceImpl implements AuthService {
         checkLoginLock(username);
         validateCaptcha(request.getCaptchaId(), request.getCaptcha());
 
-        AuthUser user = authUserMapper.selectOne(new LambdaQueryWrapper<AuthUser>()
-                .eq(AuthUser::getUsername, username)
-                .last("LIMIT 1"));
-
+        // Phase 10: load credentials via OpenFeign → enterprise-user (internal API)
+        FeignUserDTO user = loadUserByUsername(username);
         if (user == null) {
             onLoginFail(username);
             throw BusinessException.of(ErrorCode.LOGIN_FAILED);
@@ -99,7 +105,6 @@ public class AuthServiceImpl implements AuthService {
         StpUtil.getSession().set("username", user.getUsername());
         StpUtil.getSession().set("nickname", user.getNickname());
 
-        // warm permission cache
         List<String> permissions = authUserMapper.selectPermissionCodesByUserId(user.getId());
         redisUtils.setWithJitter(
                 RedisKeyBuilder.userPermissions(user.getId()),
@@ -108,8 +113,28 @@ public class AuthServiceImpl implements AuthService {
         );
 
         SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
-        log.info("User login success userId={} username={}", user.getId(), username);
+        log.info("User login success userId={} username={} via=feign", user.getId(), username);
         return new LoginVO(tokenInfo.getTokenValue(), tokenInfo.getTokenTimeout());
+    }
+
+    /**
+     * Call user service over Feign; map Feign/HTTP failures to login failure (no leak).
+     */
+    private FeignUserDTO loadUserByUsername(String username) {
+        try {
+            Result<FeignUserDTO> result = userFeignClient.getByUsername(username);
+            if (result == null || result.data() == null) {
+                return null;
+            }
+            // business fail codes (e.g. user not found)
+            if (result.code() != null && result.code() != 200) {
+                return null;
+            }
+            return result.data();
+        } catch (Exception e) {
+            log.error("Feign load user failed username={} err={}", username, e.getMessage());
+            throw BusinessException.of(ErrorCode.INTERNAL_ERROR, "用户服务暂不可用，请稍后重试");
+        }
     }
 
     @Override
@@ -224,4 +249,3 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 }
-

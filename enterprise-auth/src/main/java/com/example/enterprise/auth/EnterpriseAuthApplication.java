@@ -4,6 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
  * Auth service entry.
@@ -13,6 +15,8 @@ import org.mybatis.spring.annotation.MapperScan;
  */
 @SpringBootApplication(scanBasePackages = {"com.example.enterprise.auth", "com.example.enterprise.common"})
 @MapperScan("com.example.enterprise.auth.mapper")
+@EnableDiscoveryClient
+@EnableFeignClients(basePackages = "com.example.enterprise.auth.feign")
 public class EnterpriseAuthApplication {
 
     public static void main(String[] args) {

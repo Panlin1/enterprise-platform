@@ -7,6 +7,12 @@ spring:
   profiles:
     active: dev
   cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connectTimeout: 3000
+            readTimeout: 5000
     nacos:
       discovery:
         server-addr: ${NACOS_ADDR:localhost:8848}
@@ -71,5 +77,5 @@ management:
 
 logging:
   level:
-    com.example.auth: INFO
-    com.example.common: INFO
+    com.example.enterprise.auth: INFO
+    com.example.enterprise.common: INFO
