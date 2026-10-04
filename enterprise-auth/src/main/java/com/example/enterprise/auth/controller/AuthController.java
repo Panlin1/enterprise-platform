@@ -1,19 +1,23 @@
 package com.example.enterprise.auth.controller;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
+
+import com.example.enterprise.auth.config.SentinelAuthConfig;
 import com.example.enterprise.auth.dto.LoginRequest;
 import com.example.enterprise.auth.service.AuthService;
 import com.example.enterprise.auth.vo.CaptchaVO;
 import com.example.enterprise.auth.vo.LoginVO;
 import com.example.enterprise.auth.vo.UserInfoVO;
+import com.example.enterprise.common.core.constant.ErrorCode;
+import com.example.enterprise.common.core.exception.BusinessException;
 import com.example.enterprise.common.core.result.Result;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 
 @Tag(name = "认证")
 @RestController
@@ -28,14 +32,24 @@ public class AuthController {
 
     @Operation(summary = "获取验证码")
     @GetMapping("/captcha")
+    @SentinelResource(value = SentinelAuthConfig.RES_CAPTCHA, blockHandler = "captchaBlock")
     public Result<CaptchaVO> captcha() {
         return Result.success(authService.createCaptcha());
     }
 
+    public Result<CaptchaVO> captchaBlock(BlockException ex) {
+        throw BusinessException.of(ErrorCode.TOO_MANY_REQUESTS);
+    }
+
     @Operation(summary = "登录")
     @PostMapping("/login")
+    @SentinelResource(value = SentinelAuthConfig.RES_LOGIN, blockHandler = "loginBlock")
     public Result<LoginVO> login(@Valid @RequestBody LoginRequest request) {
         return Result.success(authService.login(request));
+    }
+
+    public Result<LoginVO> loginBlock(LoginRequest request, BlockException ex) {
+        throw BusinessException.of(ErrorCode.TOO_MANY_REQUESTS);
     }
 
     @Operation(summary = "退出登录")
