@@ -1,0 +1,11 @@
+# 启用方式: --spring.profiles.active=dev,mq
+# 或环境变量: SPRING_PROFILES_ACTIVE=dev,mq
+
+rocketmq:
+  enabled: true
+  name-server: ${ROCKETMQ_NAME_SERVER:127.0.0.1:9876}
+  producer:
+    group: enterprise-auth-producer
+    send-message-timeout: 3000
+    retry-times-when-send-failed: 2
+  producer.topic-login-log: enterprise-login-log

@@ -1,0 +1,9 @@
+# 启用方式: --spring.profiles.active=dev,mq
+
+rocketmq:
+  enabled: true
+  name-server: ${ROCKETMQ_NAME_SERVER:127.0.0.1:9876}
+  producer:
+    group: enterprise-system-producer
+  consumer:
+    group: enterprise-system-login-log-group

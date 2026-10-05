@@ -45,6 +45,8 @@
         <!-- 第三方依赖版本管理-->
         <!-- Hutool 工具库（enterprise-common 使用） -->
         <hutool.version>5.8.40</hutool.version>
+        <!-- RocketMQ 异步消息（Phase 12: 登录日志） -->
+        <rocketmq-spring.version>2.3.4</rocketmq-spring.version>
         <!-- springdoc: Swagger/OpenAPI 文档， 子模块去版本 -->
         <springdoc.version>2.3.0</springdoc.version>
         <!-- sa-Token: 认证/鉴权， auth/user 模块使用 -->
@@ -143,8 +145,12 @@
                 <artifactId>hutool-all</artifactId>
                 <version>${hutool.version}</version>
             </dependency>
-
-
+            <!-- RocketMQ Spring Boot Starter (Phase 12: 登录日志异步落库) -->
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-spring-boot-starter</artifactId>
+                <version>${rocketmq-spring.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

@@ -2,11 +2,12 @@ package com.example.enterprise.auth.service.impl;
 
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+
 import com.example.enterprise.auth.dto.LoginRequest;
 import com.example.enterprise.auth.entity.AuthUser;
 import com.example.enterprise.auth.feign.UserFeignClient;
 import com.example.enterprise.auth.mapper.AuthUserMapper;
+import com.example.enterprise.auth.mq.LoginLogProducer;
 import com.example.enterprise.auth.service.AuthService;
 import com.example.enterprise.auth.vo.CaptchaVO;
 import com.example.enterprise.auth.vo.LoginVO;
@@ -21,10 +22,15 @@ import com.example.enterprise.common.redis.RedisKeyBuilder;
 import com.example.enterprise.common.redis.RedisUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -34,8 +40,6 @@ import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
-
-
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -49,6 +53,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserFeignClient userFeignClient;
     private final PasswordEncoder passwordEncoder;
     private final RedisUtils redisUtils;
+    /** 可选：未启用 RocketMQ 时为 null */
+    private final LoginLogProducer loginLogProducer;
 
     @Value("${auth.login.fail-max:5}")
     private int loginFailMax;
@@ -59,11 +65,13 @@ public class AuthServiceImpl implements AuthService {
     public AuthServiceImpl(AuthUserMapper authUserMapper,
                            UserFeignClient userFeignClient,
                            PasswordEncoder passwordEncoder,
-                           RedisUtils redisUtils) {
+                           RedisUtils redisUtils,
+                           ObjectProvider<LoginLogProducer> loginLogProducerProvider) {
         this.authUserMapper = authUserMapper;
         this.userFeignClient = userFeignClient;
         this.passwordEncoder = passwordEncoder;
         this.redisUtils = redisUtils;
+        this.loginLogProducer = loginLogProducerProvider.getIfAvailable();
     }
 
     @Override
@@ -112,6 +120,10 @@ public class AuthServiceImpl implements AuthService {
                 RedisConstants.USER_PERMISSIONS_TTL
         );
 
+        if (loginLogProducer != null) {
+            loginLogProducer.sendSuccess(user.getId(), username, clientIp(), userAgent());
+        }
+
         SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
         log.info("User login success userId={} username={} via=feign", user.getId(), username);
         return new LoginVO(tokenInfo.getTokenValue(), tokenInfo.getTokenTimeout());
@@ -141,8 +153,12 @@ public class AuthServiceImpl implements AuthService {
     public void logout() {
         if (StpUtil.isLogin()) {
             Long userId = StpUtil.getLoginIdAsLong();
+            String username = String.valueOf(StpUtil.getSession().get("username"));
             redisUtils.evict(RedisKeyBuilder.userPermissions(userId));
             StpUtil.logout();
+            if (loginLogProducer != null) {
+                loginLogProducer.sendLogout(userId, username, clientIp());
+            }
             log.info("User logout userId={}", userId);
         }
     }
@@ -201,8 +217,42 @@ public class AuthServiceImpl implements AuthService {
         String key = RedisKeyBuilder.authLoginFail(username);
         long count = redisUtils.incrementWithExpire(key, RedisConstants.LOGIN_FAIL_TTL);
         log.warn("Login fail username={} failCount={}", username, count);
+        if (loginLogProducer != null) {
+            loginLogProducer.sendFail(username, clientIp(), userAgent(), "登录失败 count=" + count);
+        }
         if (count >= loginFailMax) {
             throw BusinessException.of(ErrorCode.LOGIN_LOCKED);
+        }
+    }
+
+    private String clientIp() {
+        try {
+            ServletRequestAttributes attrs =
+                    (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attrs == null) {
+                return null;
+            }
+            HttpServletRequest req = attrs.getRequest();
+            String xff = req.getHeader("X-Forwarded-For");
+            if (StringUtils.hasText(xff)) {
+                return xff.split(",")[0].trim();
+            }
+            return req.getRemoteAddr();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String userAgent() {
+        try {
+            ServletRequestAttributes attrs =
+                    (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attrs == null) {
+                return null;
+            }
+            return attrs.getRequest().getHeader("User-Agent");
+        } catch (Exception e) {
+            return null;
         }
     }
 
