@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: enterprise-file
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        enabled: ${NACOS_DISCOVERY_ENABLED:true}
+      config:
+        enabled: ${NACOS_CONFIG_ENABLED:false}

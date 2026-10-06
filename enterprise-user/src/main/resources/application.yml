@@ -64,4 +64,4 @@ management:
 
 logging:
   level:
-    com.example.user: INFO
+    com.example.enterprise.user: INFO

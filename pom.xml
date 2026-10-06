@@ -57,6 +57,8 @@
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <!-- CVE-2026-0636: bcprov-jdk18on 1.74~1.84 存在LDAP注入漏洞（spring-cloud-context 传递引入） -->
         <bouncycastle.version>1.84</bouncycastle.version>
+        <!-- Object storage (MinIO, reserved for Phase File) -->
+        <minio.version>8.5.17</minio.version>
 
     </properties>
 
@@ -151,6 +153,14 @@
                 <artifactId>rocketmq-spring-boot-starter</artifactId>
                 <version>${rocketmq-spring.version}</version>
             </dependency>
+
+            <!-- MinIO client (reserved: file service object storage extension) -->
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

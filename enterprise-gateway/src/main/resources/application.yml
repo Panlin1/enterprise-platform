@@ -55,6 +55,13 @@ spring:
               predicates:
                 - Path=/api/system/**
 
+            # File: upload / download
+            - id: enterprise-file
+              uri: lb://enterprise-file
+              predicates:
+                - Path=/api/files/**
+              filters:
+                - StripPrefix=0
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -91,5 +98,5 @@ management:
 
 logging:
   level:
-    com.example.gateway: INFO
+    com.example.enterprise.gateway: INFO
     org.springframework.cloud.gateway: INFO
