@@ -64,6 +64,13 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Optional: Actuator（InfoContributor 编译用；业务服务需自行引入 starter） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

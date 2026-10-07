@@ -6,23 +6,23 @@
 
 ## 统一约定
 
-| 项 | 值 |
-|----|-----|
-| 基础路径 | `/actuator` |
-| 开发暴露 | `health,info,metrics` |
-| Gateway 额外 | `gateway` |
-| 健康明细 | `show-details: when_authorized` |
-| 探针 | `probes.enabled=true`（liveness/readiness） |
+| 项           | 值                                          |
+|--------------|---------------------------------------------|
+| 基础路径     | `/actuator`                                 |
+| 开发暴露     | `health,info,metrics`                       |
+| Gateway 额外 | `gateway`                                   |
+| 健康明细     | `show-details: when_authorized`             |
+| 探针         | `probes.enabled=true`（liveness/readiness） |
 
 ## 服务端点一览
 
-| 服务 | 端口 | 健康检查 |
-|------|------|----------|
-| gateway | 8080 | http://localhost:8080/actuator/health |
-| user | 8081 | http://localhost:8081/actuator/health |
-| auth | 8082 | http://localhost:8082/actuator/health |
-| system | 8083 | http://localhost:8083/actuator/health |
-| file | 8084 | http://localhost:8084/actuator/health |
+| 服务     | 端口 | 健康检查                              |
+|----------|------|---------------------------------------|
+| gateway  | 8080 | http://localhost:8080/actuator/health |
+| user     | 8081 | http://localhost:8081/actuator/health |
+| auth     | 8082 | http://localhost:8082/actuator/health |
+| system   | 8083 | http://localhost:8083/actuator/health |
+| file     | 8084 | http://localhost:8084/actuator/health |
 | business | 8085 | http://localhost:8085/actuator/health |
 
 常用路径：
