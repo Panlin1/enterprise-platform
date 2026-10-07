@@ -1,15 +1,70 @@
 server:
-  port: 8085
+  port: 8086
 
 spring:
   application:
     name: enterprise-business
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        enabled: ${NACOS_DISCOVERY_ENABLED:true}
+        fail-fast: false
+      config:
+        enabled: ${NACOS_CONFIG_ENABLED:false}
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      id-type: auto
+
+sa-token:
+  token-name: Authorization
+  timeout: 7200
+  active-timeout: -1
+  is-concurrent: true
+  is-share: false
+  token-style: uuid
+  is-log: false
+  is-read-header: true
+  is-read-cookie: false
+  token-prefix: Bearer
+  is-print: false
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
 
 management:
   endpoints:
     web:
+      base-path: /actuator
       exposure:
-        include: health,info
+        include: health,info,metrics
   endpoint:
     health:
-      show-details: never
+      show-details: when_authorized
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  level:
+    com.example.enterprise.business: INFO
+    com.example.enterprise.common: INFO
+

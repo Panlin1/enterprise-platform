@@ -1,0 +1,32 @@
+# =============================================================================
+# Actuator 统一配置片段（Phase 15）
+# 说明：各服务 application.yml 中 management 段已按此规范对齐
+# 后续可放入 Nacos 共享配置，DataId 示例：common-actuator.yml
+# =============================================================================
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        # 开发环境暴露健康、信息、指标；生产请收敛并加鉴权/网络隔离
+        include: health,info,metrics
+  endpoint:
+    health:
+      # 认证后可见组件明细（DB/Redis 等）
+      show-details: when_authorized
+      # K8s 存活/就绪探针
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+# 可选：应用信息（各服务可覆盖）
+# info:
+#   app:
+#     name: ${spring.application.name}
+#     version: 1.0.0-SNAPSHOT
